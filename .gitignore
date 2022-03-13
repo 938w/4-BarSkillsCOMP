@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+build/4barskills.bin
+build/4barskills.elf
+build/4barskills.map
