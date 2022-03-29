@@ -3,6 +3,8 @@
 
 using namespace std;
 
+const int accel_step = 3;
+
 void pid::linedrive(double distance, double dir, double velocity, double porportion, int errorcorrect) {
    //higher porportion causes the pid "reacting" turning amount to be higher
       //lower porportion causes the pid "reacting" turning amount to be lower
@@ -14,6 +16,7 @@ void pid::linedrive(double distance, double dir, double velocity, double porport
       double lastOut = 0;
       int count = 0;
 
+      double lastVelocity = velocity;
       if (velocity > 0) {
         //driving forward
         while (((LeftDriveSmart.rotation(rotationUnits::deg)+RightDriveSmart.rotation(rotationUnits::deg))/2)*12.57/360 < distance) {
@@ -38,10 +41,12 @@ void pid::linedrive(double distance, double dir, double velocity, double porport
             lastOut = out;
 
             // new velocity slow until 10%
-            // every step 10 percent within 20ms
-            double newVelocity = velocity * (out / (20));
-            if (newVelocity < 10) newVelocity = 10;
-          
+            // every step certain percent within 10ms
+            double newVelocity = lastVelocity - accel_step;
+            if (newVelocity < 20) newVelocity = 20;
+            lastVelocity = newVelocity;
+            Mobile.Screen.print(newVelocity);
+            Mobile.Screen.print("-");
 
             double error = (dir-(Inertial.yaw()*porportion))*errorcorrect;
             LeftDriveSmart.spin(vex::directionType::fwd, newVelocity+(error), vex::velocityUnits::pct);
@@ -53,7 +58,7 @@ void pid::linedrive(double distance, double dir, double velocity, double porport
             LeftDriveSmart.spin(vex::directionType::fwd, (velocity+(error)), vex::velocityUnits::pct);
             RightDriveSmart.spin(vex::directionType::fwd, (velocity-(error)), vex::velocityUnits::pct);
           }
-          wait(1, msec);
+          wait(10, msec);
         }
 
       } else {
@@ -67,9 +72,9 @@ void pid::linedrive(double distance, double dir, double velocity, double porport
 
             // 10 rpm with 20 mesc = 0.419inches 
             if (abs(lastOut - out) < 0.0419) {             
-              
+                          count++;
             }
-            count++;
+
 
             if (count > 4) {
               //Mobile.Screen.print("exit");
@@ -79,9 +84,14 @@ void pid::linedrive(double distance, double dir, double velocity, double porport
             lastOut = out;
             // new velocity slow until 10%
             // every step 10 percent within 20ms
-            float newVelocity = -1 * velocity * (out / (20));
+            float newVelocity = lastVelocity + accel_step;
            
-            if (newVelocity > -10) newVelocity = -10;
+            if (newVelocity > -20) newVelocity = -20;
+            lastVelocity = newVelocity;
+
+            Mobile.Screen.print(newVelocity);
+            Mobile.Screen.print("-");
+
 
             LeftDriveSmart.spin(vex::directionType::fwd, newVelocity+(dir-(Inertial.yaw()*porportion))*errorcorrect, vex::velocityUnits::pct);
             RightDriveSmart.spin(vex::directionType::fwd, newVelocity-(dir-(Inertial.yaw()*porportion))*errorcorrect, vex::velocityUnits::pct);
@@ -91,7 +101,7 @@ void pid::linedrive(double distance, double dir, double velocity, double porport
             RightDriveSmart.spin(vex::directionType::fwd, (velocity-(dir-(Inertial.yaw())*porportion)*errorcorrect), vex::velocityUnits::pct);
           }
 
-          wait(1, msec);
+          wait(10, msec);
         }
       }
       LeftDriveSmart.stop(brakeType::brake);
@@ -100,8 +110,4 @@ void pid::linedrive(double distance, double dir, double velocity, double porport
 
 void pid::drive(double distance, double dir, double velocity, double porportion, int errorcorrect) {
   linedrive(distance, dir, velocity, porportion, errorcorrect);
-}
-
-void pid::drive(double distance, double dir, double velocity, double porportion) {
-  linedrive(distance, dir, velocity, porportion, 1);
 }

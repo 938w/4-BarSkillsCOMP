@@ -8,6 +8,5 @@ private:
                  double porportion, int errorcorrect);
 
 public:
-  void drive(double distance, double dir, double velocity, double porportion, int errorcorrect);
-  void drive(double distance, double dir, double velocity, double porportion);
+  void drive(double distance, double dir, double velocity, double porportion, int errorcorrect = 1);
 };

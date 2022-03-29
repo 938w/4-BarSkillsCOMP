@@ -10,17 +10,39 @@
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
-#include "vex.h"
 #include "pid.h"
+#include "pid2.h"
+#include "vex.h"
 using namespace vex;
 
+double angle = 110;
 // A global instance of competition
 competition Competition;
-void eztune () {
-  while (true) {
-    
+/*
+  void eztune () {
+  bool last = false;
+  bool loop = true;
+
+  while (loop) {
+    Mobile.Screen.newLine();
+    Mobile.Screen.print(angle);
+    Mobile.Screen.print(":first neutral | [A] to exit");
+    if (Mobile.ButtonUp.pressing()&&!last){
+      angle += 0.5;
+      last = true;
+    } else if(!Mobile.ButtonUp.pressing()) {
+      last = false;
+    }
+    if (Mobile.ButtonA.pressing()) {
+      loop = false;
+    }
+    wait(20, msec);
+
+
   }
 }
+*/
+
 // define your global instances of motors and other devices here
 
 /*---------------------------------------------------------------------------*/
@@ -53,14 +75,14 @@ void pre_auton(void) {
 
 void autonomous(void) {
 
-//ROUTE2
+  // ROUTE2
   Mobile.Screen.print(Inertial.yaw());
-
+  
   timer t1;
   timer t2;
-  //Logger logger("route2");
-  //logger.log("start the run");
-  pid PID;
+  // Logger logger("route2");
+  // logger.log("start the run");
+  pid2 PID;
   t2.reset();
   Brain.Screen.print("route 2");
 
@@ -80,28 +102,29 @@ void autonomous(void) {
   ForkLift.spinFor(forward, 350, degrees, 100, rpm);
   // drive backwards a little bit
   // Drivetrain.driveFor(reverse, 16, inches, 120, rpm);
-  PID.drive(-16.5, 0, -100, 1);
+  PID.drive(-16.5, 100, 16, 0);
   // Turn 90 degrees to face neutral goal
-  Drivetrain.turnToHeading(108, degrees, 100, rpm);
+  Drivetrain.turnToHeading(109, degrees, 200, rpm);
 
   // Activate clamp
   Clamp.set(true);
 
   // Drive to neutral goal
   // Drivetrain.driveFor(reverse, 50, inches, 80, rpm);
-  PID.drive(-50, Inertial.yaw(), -100, 1);
+  PID.drive(-50, 100);
 
   Drivetrain.stop(brake);
 
   // Clamp neutral
   Clamp.set(false);
   wait(0.8, sec);
+
   // go to platform
   FourBar.spinFor(forward, 770, degrees, 100, rpm, false);
-  Drivetrain.turnFor(right, 13, degrees);
+  Drivetrain.turnToHeading(123, degrees);
   wait(0.2, sec);
   // Drivetrain.driveFor(reverse, 54, inches, 100,rpm);
-  PID.drive(-54, Inertial.yaw(), -100, 1);
+  PID.drive(-54, 100);
   FourBar.spinFor(reverse, 75, degrees, false);
   // Turn so goal is closer to the platforms center of gravity
   // Drivetrain.turnFor(right, 25, degrees);
@@ -109,11 +132,11 @@ void autonomous(void) {
 
   FourBar.spinFor(reverse, 240, degrees);
   // faster
-  double headingwhere = Inertial.heading();
-  LeftDriveSmart.rotateFor(reverse, 60, degrees, 160, rpm, false);
-  RightDriveSmart.rotateFor(forward, 60, degrees, 160, rpm);
+
+  LeftDriveSmart.rotateFor(reverse, 40, degrees, 160, rpm, false);
+  RightDriveSmart.rotateFor(forward, 40, degrees, 160, rpm);
   Clamp.set(true);
-  Drivetrain.turnToHeading(headingwhere, degrees);
+  Drivetrain.turnToHeading(123, degrees);
 
   // Release
   // Clamp.set(true);
@@ -124,44 +147,48 @@ void autonomous(void) {
   ForkLift.spinFor(reverse, 360, degrees, 70, rpm, false);
   FourBar.spinFor(reverse, 520, degrees, false);
   Drivetrain.driveFor(forward, 27, inches, 120, rpm);
-  
+
   Drivetrain.stop(brake);
   wait(0.4, sec);
   // moveback
-  Drivetrain.driveFor(reverse, 16, inches, 175, rpm);
-  Drivetrain.turnFor(177, degrees, 100, rpm);
+  //Drivetrain.driveFor(reverse, 16, inches, 175, rpm);
+  PID.drive(-16, 100, 12);
+  Drivetrain.turnToHeading(303, degrees, 100, rpm);
+  Mobile.Screen.newLine();
+  Mobile.Screen.print(Inertial.heading());
+  
   // moveforward
 
-  PID.drive(-21, Inertial.yaw(), -80, 1);
+  PID.drive(-21, 80);
   Mobile.Screen.newLine();
   Mobile.Screen.print(t1.time(sec));
   // clamp
   Clamp.set(false);
   FourBar.spinFor(forward, 200, degrees);
   // turn to red
-  Drivetrain.turnToHeading(-130, degrees, 150, rpm);
+  Drivetrain.turnToHeading(-132, degrees, 150, rpm);
   Mobile.Screen.newLine();
   Mobile.Screen.print(Inertial.yaw());
-  // drive to red 
+  // drive to red
   ForkLift.spinFor(reverse, 15, degrees, false);
-  // Drivetrain.driveFor(forward, 30, inches, 80, rpm);
-  PID.drive(34.5, Inertial.yaw(), 100, 0.9);
+  // Drivetrain.driveFor(forward, 34.5, inches, 100, rpm);  
+  PID.drive(31, 100);
   // pick up red
   ForkLift.spinFor(forward, 350, degrees, 100, rpm, false);
   wait(0.5, sec);
   FourBar.spinFor(forward, 460, degrees, 100, rpm, false);
   // Drivetrain.driveFor(reverse, 26, inches, 100, rpm);
-  PID.drive(-27.5, Inertial.yaw(), -100, 1);
+  PID.drive(-27.5, 100);
   // turn to ramp
 
   Drivetrain.turnToHeading(140, degrees, 200, rpm);
   // go to ramp
   // Drivetrain.driveFor(reverse, 50, inches, 100, rpm);
-  PID.drive(-38, Inertial.yaw(), -75, 1);
+  PID.drive(-39, 75);
   FourBar.spinFor(reverse, 90, degrees, 100, rpm);
   // turn to ramp
-  LeftDriveSmart.rotateFor(reverse, 80, degrees, 160, rpm, false);
-  RightDriveSmart.rotateFor(forward, 80, degrees, 160, rpm);
+  LeftDriveSmart.rotateFor(reverse, 82, degrees, 160, rpm, false);
+  RightDriveSmart.rotateFor(forward, 82, degrees, 160, rpm);
   Drivetrain.driveFor(reverse, 4, inches);
   Clamp.set(true);
   wait(0.2, sec);
@@ -170,33 +197,35 @@ void autonomous(void) {
 
   Drivetrain.turnToHeading(90, degrees, 100, rpm);
   FourBar.spinTo(0, degrees, 100, rpm, false);
+
+  
   // Drivetrain.driveFor(forward, 10, inches, 180, rpm);
 
   // push middle goal
-  Drivetrain.driveFor(forward, 58, inches, 120, rpm);
-  // PID.drive(68, Inertial.yaw(), 70, 1.2);
+  //Drivetrain.driveFor(forward, 58, inches, 120, rpm);
+  PID.drive(58, 100, 16, 90);
   // turn to neutral
 
-  Drivetrain.turnToHeading(140, degrees, 160, rpm);
+  Drivetrain.turnToHeading(148, degrees, 160, rpm);
 
   // go to neutral
   // Drivetrain.driveFor(reverse, 40, inches, 160, rpm);
-  PID.drive(-44, Inertial.yaw(), -100, 1);
+  PID.drive(-40, 100);
   // p
   Clamp.set(false);
   // turnaround
   wait(0.4, sec);
   FourBar.spinFor(forward, 670, degrees, false);
 
-  Drivetrain.turnToHeading(-65, degrees, 140, rpm);
+  Drivetrain.turnToHeading(-60, degrees, 140, rpm);
 
-  PID.drive(-45, Inertial.yaw(), -100, 1); 
+  PID.drive(-44, 100);
   FourBar.spinFor(reverse, 150, degrees, 100, rpm, false);
   // Drivetrain.turnFor(right, 15, degrees);
   LeftDriveSmart.rotateFor(forward, 95, degrees, 160, rpm, false);
   RightDriveSmart.rotateFor(reverse, 95, degrees, 160, rpm);
   // Lower fourbar
-  
+
   Drivetrain.driveFor(reverse, 5.5, inches, 200, rpm);
   // release
   Clamp.set(true);
@@ -235,9 +264,7 @@ void autonomous(void) {
   Mobile.Screen.print(t2.time(sec));
   Mobile.rumble(".-.-");
 
-  //logger.log("end the run");
-
-
+  // logger.log("end the run");
 }
 
 /*---------------------------------------------------------------------------*/
